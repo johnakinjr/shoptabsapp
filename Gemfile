@@ -3,7 +3,7 @@ ruby '1.9.3'
 
 gem 'rails', '3.2.18'
 
-gem 'shopify_app','~> 4.4.4'
+gem 'shopify_app' ,'~> 4.4.4'
 gem 'jquery-rails'
 gem 'quiet_assets'
 

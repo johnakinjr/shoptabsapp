@@ -3,6 +3,15 @@ class HomeController < ApplicationController
   around_filter :shopify_session
   
   def index
+    if request.post?
+      
+      # if params[:name].present?
+      #   flash[:notice] = "Created #{ params[:colour] } unicorn: #{ params[:name] }."
+      # else
+      # flash[:error] = "Name must be set."
+      # end
+      flash[:notice] = "Saved!"
+    end
   end
 
   def modal
@@ -26,11 +35,12 @@ class HomeController < ApplicationController
 
   def form_page
     if request.post?
+      
       if params[:name].present?
-        flash[:notice] = "Created #{ params[:colour] } unicorn: #{ params[:name] }."
+         flash[:notice] = "Created #{ params[:colour] } unicorn: #{ params[:name] }."
       else
-        flash[:error] = "Name must be set."
-      end
+      flash[:error] = "Name must be set."
+     end
     end
   end
 

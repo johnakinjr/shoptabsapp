@@ -28,3 +28,4 @@ doc/
 
 # Ignore sample app
 /embedded-app-example/
+server.*

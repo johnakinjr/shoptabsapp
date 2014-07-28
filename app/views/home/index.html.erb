@@ -1,8 +1,97 @@
 <%= render "/common/top_bar" %>
 
-<h2>Shopify Embedded Example.</h2>
+<script type="text/javascript">
+   window.mainPageTitle = 'Index';
 
-<p>This application demos the various ways an app can now interact with the Shopify Admin. See the project README for details.</p>
+  ShopifyApp.ready(function(){
+    ShopifyApp.Bar.initialize({
+      title: window.mainPageTitle,
+      icon: 'https://embedded-app-example.herokuapp.com/icon.png',
+      buttons: {
+        primary: {
+          label: "Save Tabs",
+          message: 'save-tabs-form-message'
+        },
+        secondary: {
+          label: "Cancel",
+          href: "/",
+          target: 'app' 
+        }
+      }
+    });
+
+  <% if flash[:notice] %>
+    ShopifyApp.flashNotice("<%= flash[:notice] %>");
+  <% end %>
+
+  <% if flash[:error] %>
+    ShopifyApp.flashError("<%= flash[:error] %>");
+  <% end %>
+
+  });
+</script>
+
+<h2>Product Description Tabs</h2>
+
+<p>This application allows you to create tabbed descriptions and dispay them instead of standard descriptions.</p>
+
+<form method="POST" action="form_page" data-shopify-app-submit="save-tabs-form-message">
+  <input name="authenticity_token" value="<%= form_authenticity_token %>" type="hidden">
+    
+  <h2>Product: </h2>
+ <input type="checkbox" name="tab_show" value="true"> Enable Tabs for this product?<br>
+  
+  <div id="responsiveTabsDemo">
+      <ul>
+          <li><a href="#tab-1">Tab 1</a></li>
+          <li><a href="#tab-2">Tab 2</a></li>
+          <li><a href="#tab-3">Tab 3</a></li>
+		  <li><a href="#tab-4">Tab 4</a></li>
+		  <li><a href="#tab-5">Tab 5</a></li>
+      </ul>
+
+      <div id="tab-1"> 
+		  <label>Title 1:</label>
+		  <input type="text" name="tab_title_1" value="Summary"/> 
+	  	  <div>
+			  <textarea name="tab_title_1"></textarea>
+			  </div>
+	  </div>
+      <div id="tab-2"> 
+		  <label>Title 2:</label>
+		  <input type="text" name="tab_title_2" value="Details"/> 
+	  	  <div>
+			  <textarea name="tab_title_1"></textarea>
+			  </div>
+	  </div>
+      <div id="tab-3"> 
+		  <label>Title 3:</label>
+		  <input type="text" name="tab_title_3" value="Specs"/> 
+	  	  <div>
+			  <textarea name="tab_title_3"></textarea>
+			  </div>
+	  </div>
+      <div id="tab-4"> 
+		  <label>Title 4:</label>
+		  <input type="text" name="tab_title_4" value="Notes"/> 
+	  	  <div>
+			  <textarea name="tab_title_4"></textarea>
+			  </div>
+	  </div>
+      <div id="tab-5"> 
+		  <label>Title 5:</label>
+		  <input type="text" name="tab_title_5" value="Special"/> 
+	  	  <div>
+			  <textarea name="tab_title_5"></textarea>
+		  </div>
+	  </div>
+  </div>
+
+<input type="hidden" name="product_id" value="product_id">
+<input type="hidden" name="product_handle" value="product_handle">
+
+</form>
+
 
 <p><a href="regular_app_page">Links to another page</a> work normally.</p>
 
