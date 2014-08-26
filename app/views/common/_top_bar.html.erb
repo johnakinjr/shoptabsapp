@@ -1,6 +1,5 @@
 <script type="text/javascript">
-  window.mainPageTitle = 'Main Page';
-
+ /* 
   ShopifyApp.ready(function(){
     ShopifyApp.Bar.initialize({
       title: window.mainPageTitle,
@@ -13,5 +12,42 @@
         }
       }
     });
-  });
+  });*/
+ 
+ window.mainPageTitle = 'Tabbed Product Description';
+ ShopifyApp.Bar.loadingOn();
+    window.mainPageTitle = 'Main Page ';
+
+    ShopifyApp.ready(function(){
+		
+	   
+      ShopifyApp.Bar.initialize({
+        title: window.mainPageTitle,
+        /*icon: 'https://embedded-app-example.herokuapp.com/icon.png',*/
+        buttons: {
+	        primary: {
+	          label: "Save Tabs",
+	          message: 'save-tabs-form-message',
+			  loading:true //,
+			 //callback: function(){ 
+			            // ShopifyApp.Bar.loadingOn();
+						 //alert("foo");
+			            // doSomeCustomAction();
+			          // }
+	        },
+	        secondary: {
+	          label: "Cancel and Close",
+	         	loading:true,
+				callback: function(){
+					ShopifyApp.redirect("/products");
+			}
+			  target: 'app' 
+		  
+	        }
+        }
+	   
+	  
+	  });
+	  });
+	  
 </script>

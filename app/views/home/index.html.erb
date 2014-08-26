@@ -1,21 +1,31 @@
 <%= render "/common/top_bar" %>
 
 <script type="text/javascript">
+ShopifyApp.Bar.loadingOn();
    window.mainPageTitle = 'Index';
 
   ShopifyApp.ready(function(){
     ShopifyApp.Bar.initialize({
       title: window.mainPageTitle,
-      icon: 'https://embedded-app-example.herokuapp.com/icon.png',
+      /*icon: 'https://embedded-app-example.herokuapp.com/icon.png',*/
       buttons: {
         primary: {
           label: "Save Tabs",
-          message: 'save-tabs-form-message'
+          message: 'save-tabs-form-message',
+		  loading:true
         },
         secondary: {
-          label: "Cancel",
-          href: "/",
-          target: 'app' 
+          label: "Cancel and Close",
+		  <% if defined? @product %>
+		callback: function(){
+			ShopifyApp.redirect("/products/<%= @product.id.to_s%>");
+		}
+		<%else %>
+		callback: function(){
+			ShopifyApp.redirect("/products");
+		}
+		<%end %>
+		 
         }
       }
     });
@@ -28,113 +38,252 @@
     ShopifyApp.flashError("<%= flash[:error] %>");
   <% end %>
 
+
   });
 </script>
+<style>
+			
+		
 
-<h2>Product Description Tabs</h2>
+			
 
-<p>This application allows you to create tabbed descriptions and dispay them instead of standard descriptions.</p>
+			div#tabspanel {
+				margin-top:20px;
+				padding:10px;
+				width:620px;
+				background:#666;
+			}
+			div#tabspanel div{
+				margin:0;
+			
+			}
+			 div#tabspanel div.outer  {
+				padding:10px;
+				
+				background:#fff;
+			}
+			div#tabspanel ul.tabs {
+				margin:0;
+				padding:10;
+				
+			}
+			
+			div#tabspanel div div.editor
+			{
+				padding:0;
+			}
+			.tabs li {
+				list-style:none;
+				display:inline;
+			}
 
-<form method="POST" action="form_page" data-shopify-app-submit="save-tabs-form-message">
+			.tabs a {
+				padding:5px 10px;
+				display:inline-block;
+				background:#666;
+				color:#fff;
+				text-decoration:none;
+			}
+
+			.tabs a.active {
+				background:#fff;
+				color:#000;
+				border-left:solid 1px #666;
+				border-top:solid 1px #666;
+				border-right:solid 1px #666;
+			}
+			
+			
+
+		</style>
+<script type="text/javascript" src="app/assets/javascripts/tinymce/tinymce.min.js"></script>
+
+<script type="text/javascript">
+tinyMCE.init({
+        theme : "modern",
+        mode : "textareas",
+		menu : { // this is the complete default configuration
+		       // file   : {title : 'File'  , items : 'newdocument'},
+		        edit   : {title : 'Edit'  , items : 'undo redo | cut copy paste pastetext | selectall'},
+		        insert : {title : 'Insert', items : 'link media | template hr'},
+		        view   : {title : 'View'  , items : 'visualaid'},
+		        format : {title : 'Format', items : 'bold italic underline strikethrough superscript subscript | formats | removeformat'},
+		        table  : {title : 'Table' , items : 'inserttable tableprops deletetable | cell row column'},
+		        tools  : {title : 'Tools' , items : 'spellchecker code'}
+		    },
+			height : 300,
+			
+		plugins: [
+        "advlist autolink lists link charmap preview anchor",
+        "searchreplace wordcount visualblocks visualchars code fullscreen",
+        "insertdatetime media nonbreaking save table contextmenu directionality",
+        "template paste colorpicker textpattern"
+    ],
+	    toolbar1: "insertfile undo redo | styleselect | bold italic | alignleft aligncenter alignright alignjustify ",
+	       toolbar2: "bullist numlist outdent indent | link | code",
+			
+});
+</script>
+
+
+<% 
+titles = Hash.new;
+default_titles = Array['Summary','Details','Specs','Notes','Special']
+show_value = false
+contents = Hash.new;
+
+
+show = 'false';
+
+# need to reload and count metafields?
+if defined? @product
+
+@product.metafields.each do |metafield| 
+ if metafield.key.include? "tab_title_" 
+	 	titles[metafield.key] = metafield.value
+	elsif metafield.key.include? "tab_content_" 
+		contents[metafield.key] = metafield.value 
+	elsif metafield.key.include? "tab_show" 	
+		if metafield.value =="true"	
+			show_value = true
+			%>
+			
+<script type="text/javascript">
+$(document).ready(function(){
+	$('input[name="tab_show"]').prop('checked', true);
+});
+
+</script>
+
+<% 		end
+	end 
+ end 
+
+# if tab titles are blank, use defaults
+for i in 1..5
+	if titles[i].to_s.empty?
+		titles["tab_title_" +i.to_s] = default_titles[i-1]
+	end
+end
+ 
+# if any tab content equals <p>&nbsp;</p>, then make it empty string...
+
+ 
+# if first tab contents are blank and description is not, or, if show tab is currently unchecked, make first tab equal the description
+
+if contents['tab_content_1'].to_s.empty? or !show_value
+	contents['tab_content_1'] = @product.body_html
+end
+
+%>
+
+<h2>Tabbed Product Description</h2>
+
+<p>This app allows you to create tabbed descriptions and display them instead of standard descriptions.  </p>
+<ul>
+	<li>If the first time to load, or if the "show tabs" box is unchecked, the first tab will show the current product description.</li>
+	<li>If "show tabs" box is checked, the HTML generated by this app will overwrite the current description.</li>
+</ul>
+
+<form method="POST" action="index" data-shopify-app-submit="save-tabs-form-message">
   <input name="authenticity_token" value="<%= form_authenticity_token %>" type="hidden">
     
-  <h2>Product: </h2>
+  <h4>Product: <%= @product.title %><!-- <%= @product.id.to_s %>--></h2>
  <input type="checkbox" name="tab_show" value="true"> Enable Tabs for this product?<br>
   
-  <div id="responsiveTabsDemo">
-      <ul>
-          <li><a href="#tab-1">Tab 1</a></li>
-          <li><a href="#tab-2">Tab 2</a></li>
-          <li><a href="#tab-3">Tab 3</a></li>
-		  <li><a href="#tab-4">Tab 4</a></li>
-		  <li><a href="#tab-5">Tab 5</a></li>
-      </ul>
+ <div id="tabspanel">
+      <ul class="tabs">
+		  <% counter = 1
+		  begin %>
+			  <li><a href="#tab<%=counter.to_s %>">Tab <%=counter%></a></li>
+			  <%
+			  counter = counter +1
+		   end until counter > 5
+		   %>
+	  </ul>
 
-      <div id="tab-1"> 
-		  <label>Title 1:</label>
-		  <input type="text" name="tab_title_1" value="Summary"/> 
-	  	  <div>
-			  <textarea name="tab_title_1"></textarea>
+
+		  <% counter = 1
+		  begin %>
+		      <div id="tab<%=counter.to_s %>" class="outer"> 
+				  <label>Title <%=counter%>:</label>
+				  <input type="text" name="tab_title_<%=counter.to_s %>" value="<%= titles['tab_title_'+ counter.to_s] %> "/> 
+				  <div class="editor">
+					  <textarea name="tab_content_<%=counter.to_s %>" rows="20" cols="80"><%= contents['tab_content_' + counter.to_s] %></textarea>
+				  </div>
 			  </div>
-	  </div>
-      <div id="tab-2"> 
-		  <label>Title 2:</label>
-		  <input type="text" name="tab_title_2" value="Details"/> 
-	  	  <div>
-			  <textarea name="tab_title_1"></textarea>
-			  </div>
-	  </div>
-      <div id="tab-3"> 
-		  <label>Title 3:</label>
-		  <input type="text" name="tab_title_3" value="Specs"/> 
-	  	  <div>
-			  <textarea name="tab_title_3"></textarea>
-			  </div>
-	  </div>
-      <div id="tab-4"> 
-		  <label>Title 4:</label>
-		  <input type="text" name="tab_title_4" value="Notes"/> 
-	  	  <div>
-			  <textarea name="tab_title_4"></textarea>
-			  </div>
-	  </div>
-      <div id="tab-5"> 
-		  <label>Title 5:</label>
-		  <input type="text" name="tab_title_5" value="Special"/> 
-	  	  <div>
-			  <textarea name="tab_title_5"></textarea>
-		  </div>
-	  </div>
+			  <%
+			  counter = counter +1
+		   end until counter > 5
+		   %>
+      
+      
   </div>
 
-<input type="hidden" name="product_id" value="product_id">
-<input type="hidden" name="product_handle" value="product_handle">
+<input type="hidden" name="product_id" value="<%= @product.id %>">
+<input type="hidden" name="product_handle" value="<%= @product.handle %>">
+
+
 
 </form>
+<% else
+	%>
+	<script type="text/javascript">
+	ShopifyApp.Modal.alert({
+	  title: "Warning!",
+	  message: "No Product currently loaded.  Please reselect a product from the admin.",
+	  okButton: "I understand"
+	}, function(result){
+		
+			ShopifyApp.redirect("/admin/products");
+	
+	});	
+	});
+	</script>
+	<%
+end
+ %>
+<h4>Notes for Beta Users</h4>
+<p>Default tab names are hard coded.  Configurable defaults coming soon.</p>
+<p>Documentation on CSS and JavaScript requirements coming soon.</p>
+<p>If you experience any unexpected behavior or bugs, please contact <a href="mailto:john@johnakin.com">john@johnakin.com</a></p>
 
+<p>Tabbed Product Description Shopify App - &copy; 2014 Persiliant</p>
+<script type="text/javascript">
 
-<p><a href="regular_app_page">Links to another page</a> work normally.</p>
+$('ul.tabs').each(function(){
+  // For each set of tabs, we want to keep track of
+  // which tab is active and it's associated content
+  var $active, $content, $links = $(this).find('a');
 
-<h2>Function calls</h2>
-<ul>
-  <li><a href="#" onclick="ShopifyApp.Bar.loadingOff()">Turn spinner off</a></li>
-  <li><a href="#" onclick="ShopifyApp.Bar.loadingOn()">Turn spinner on</a></li>
-  <li><a href="#" onclick="window.mainPageTitle = window.mainPageTitle + '!'; ShopifyApp.Bar.setTitle(window.mainPageTitle)">Add an exclamation mark to the title</a></li>
-  <li><a href="#" onclick="ShopifyApp.redirect('/orders')">Redirect to /orders within the Shopify Admin</a></li>
+  // If the location.hash matches one of the links, use that as the active tab.
+  // If no match is found, use the first link as the initial active tab.
+  $active = $($links.filter('[href="'+location.hash+'"]')[0] || $links[0]);
+  $active.addClass('active');
 
-  <li><a href="#" onclick="ShopifyApp.flashNotice('Flash a notice message.');">Flash notice</a></li>
-  <li><a href="#" onclick="ShopifyApp.flashError('Flash an error message.');">Flash error</a></li>
-  <li><a href="#" onclick="ShopifyApp.Bar.setPagination({previous: {loading: false, callback: function(){alert('Previous clicked'); } }}); return false">Add pagination buttons</a></li>
-</ul>
+  $content = $($active[0].hash);
 
+  // Hide the remaining content
+  $links.not($active).each(function () {
+    $(this.hash).hide();
+  });
 
-<!-- 
-  This is example code, focusing on simplicity.
-  Try not to use 'onclick' attributes in real applications. Use unobtrusive JavaScript instead.
-  http://en.wikipedia.org/wiki/Unobtrusive_JavaScript)
+  // Bind the click event handler
+  $(this).on('click', 'a', function(e){
+    // Make the old tab inactive.
+    $active.removeClass('active');
+    $content.hide();
 
-  See modals.js for the implementation of these calls.
--->
+    // Update the variables with the new link and content
+    $active = $(this);
+    $content = $(this.hash);
 
-<h2>Modal Windows</h2>
-<ul>
-  <li><a href="#" onclick="alertModal()">Alert modal</a></li>
-  <li><a href="#" onclick="confirmModal()">Confirm modal</a></li>
-  <li><a href="#" onclick="inputModal('Enter a value:')">Prompt modal</a></li>
-  <li><a href="#" onclick="newModal('<%= modal_url %>','This is a custom modal title')">Modal window containing an iframe</a></li>
-  <li><a href="#" onclick="newButtonModal('<%= modal_buttons_url %>','This modal has many buttons')">Modal window with a variety of buttons</a></li>
-</ul>
+    // Make the tab active.
+    $active.addClass('active');
+    $content.show();
 
-<h2>Integrations</h2>
-<ul>
-  <li><a href="form_page">Go to form page</a></li>
-  <li><a href="pagination">Pagination links</a></li>
-  <li><a href="breadcrumbs">Breadcrumbs</a></li>
-  <li><a href="buttons">Buttons</a></li>
-</ul>
-
-<h2>Error pages</h2>
-<ul>
-  <li><a href="/does_not_exist">Error 404</a></li>
-  <li><a href="/error">Error 500</a></li>
-</ul>
+    // Prevent the anchor's default click action
+    e.preventDefault();
+  });
+});
+</script>

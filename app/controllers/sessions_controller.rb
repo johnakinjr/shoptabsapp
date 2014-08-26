@@ -24,6 +24,9 @@ class SessionsController < ApplicationController
     # Instead of doing a backend redirect we need to do a javascript redirect
     # here. Open the app/views/commom/iframe_redirect.html.erb file to understand why.
     #
+    # is this needed here? 
+    #ShopifyAPI::Session.setup({:api_key => f97549bf6f7dff3d72c523161b3ea3fc, :secret => 18e35f0c1db9adbfc7fe1222db6b35d2})
+    
     if shop_name = sanitize_shop_param(params)
       @redirect_url = "/auth/shopify?shop=#{shop_name}"
       render "/common/iframe_redirect", :format => [:html], layout: false
